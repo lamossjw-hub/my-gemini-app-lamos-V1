@@ -1,0 +1,5 @@
+{
+  "name": "Gemini Image Editor",
+  "description": "An advanced image editor powered by the Gemini API. Craft stunning images by combining an original product photo with reference images for style, lighting, and atmosphere, while preserving the product's original shape and branding.",
+  "requestFramePermissions": []
+}

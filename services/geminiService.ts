@@ -14,7 +14,10 @@ export async function generateImages(
   const genAI = new (GoogleAI as any).GoogleGenerativeAI("AIzaSyCfGwZHzXJzF58vVyRFhQ36huPsZKUxMYk");
 
   // Dùng model cơ bản nhất để không bị 404
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = genAI.getGenerativeModel({ 
+  model: "gemini-pro-vision",
+  apiVersion: "v1" // Ép nó về bản v1 ổn định, bỏ qua cái v1beta đang lỗi
+});
 
   const systemInstruction = `You are an expert product image editor. Preserve the exact shape and texture.`;
 

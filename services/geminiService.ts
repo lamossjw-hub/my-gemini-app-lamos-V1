@@ -9,17 +9,17 @@ export async function generateImages(
   numImages: number
 ): Promise<string[]> {
   
-  // 1. Khởi tạo đầu não
+  // Dùng đúng Key mới bà vừa tạo ở đây
   const genAI = new (GoogleAI as any).GoogleGenerativeAI("AIzaSyCfGwZHzXJzF58vVyRFhQ36huPsZKUxMYk");
 
-  // 2. Dùng model này để tránh 404 trên bản v1beta của bà
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  // Đổi thành model vision để nó hiểu cái ảnh dây chuyền của bà
+  const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
 
   const systemInstruction = `You are an expert product image editor. Preserve the exact shape and texture.`;
 
   const parts = [
     { text: systemInstruction },
-    { text: `User prompt: ${userPrompt || 'Create an appealing product image.'}` },
+    { text: `User prompt: ${userPrompt || 'Enhance this product image.'}` },
     {
       inlineData: {
         mimeType: originalImage.file.type,
@@ -28,6 +28,7 @@ export async function generateImages(
     },
   ];
 
+  // Thêm ảnh tham khảo nếu có
   referenceImages.forEach(refImg => {
     parts.push({
       inlineData: {
@@ -40,7 +41,6 @@ export async function generateImages(
   try {
     const result = await model.generateContent(parts);
     const response = await result.response;
-    // Đảm bảo lệnh return này nằm TRONG hàm và TRONG try-catch
     return [response.text()]; 
   } catch (error) {
     console.error("Lỗi rồi bà ơi:", error);

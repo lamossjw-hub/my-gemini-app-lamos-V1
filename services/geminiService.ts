@@ -12,7 +12,7 @@ export async function generateImages(
   numImages: number
 ): Promise<string[]> {
   // Create a new instance right before use to ensure the latest API key is used
-  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+  const ai = new GoogleGenAI(import.meta.env.VITE_GEMINI_API_KEY as string);
 
   const systemInstruction = `You are an expert product image editor. Your absolute priority is to preserve the exact shape, texture, and branding of the product in the original image (ori a). Use the reference images (ref a, ref b, ref c, ref d) ONLY for lighting, background style, and atmosphere. Do not distort the product in 'ori a'.`;
 

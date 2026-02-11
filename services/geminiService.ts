@@ -8,7 +8,7 @@ if (!process.env.API_KEY) {
   console.warn("API_KEY environment variable not set. Using a placeholder.");
 }
 
-const ai = new GoogleGenAI(AIzaSyCxIeZSiojvZtamt7g9KGUKSGSkmLZ5T_Y);
+const ai = new GoogleGenAI("AIzaSyCxIeZSiojvZtamt7g9KGUKSGSkmLZ5T_Y");
 const model = 'gemini-3-pro-image-preview'; 
 
 export async function generateImages(

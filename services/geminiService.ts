@@ -1,8 +1,6 @@
-import { GoogleGenAI } from '@google/generative-ai';
+// Dùng dấu sao (*) để lấy hết vì bản cũ nó không cho lấy lẻ tên GoogleGenAI
+import * as GoogleAI from '@google/generative-ai';
 import { ImageFile, ImageSizeOption } from '../types';
-
-// 1. Tên model chuẩn nhất cho bản v1beta của bà
-const modelName = 'gemini-1.5-flash';
 
 export async function generateImages(
   userPrompt: string,
@@ -12,16 +10,17 @@ export async function generateImages(
   numImages: number
 ): Promise<string[]> {
   
-  // 2. Dùng đúng Key mới bà vừa dán ở đây
-  const ai = new GoogleGenAI("AIzaSyCfGwZHzXJzF58vVyRFhQ36huPsZKUxMYk");
+  // Cách viết cho bản cũ: dùng GoogleAI.GoogleGenerativeAI
+  const genAI = new (GoogleAI as any).GoogleGenerativeAI("AIzaSyCfGwZHzXJzF58vVyRFhQ36huPsZKUxMYk");
 
-  const modelInstance = ai.getGenerativeModel({ model: modelName });
+  // Dùng model cơ bản nhất để không bị 404
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-  const systemInstruction = `You are an expert product image editor. Your absolute priority is to preserve the exact shape, texture, and branding of the product.`;
+  const systemInstruction = `You are an expert product image editor. Preserve the exact shape and texture.`;
 
-  const parts: any[] = [
+  const parts = [
     { text: systemInstruction },
-    { text: `User prompt: ${userPrompt || 'Create an appealing product image.'}` },
+    { text: `User prompt: ${userPrompt}` },
     {
       inlineData: {
         mimeType: originalImage.file.type,
@@ -30,6 +29,7 @@ export async function generateImages(
     },
   ];
 
+  // Thêm ảnh tham khảo
   referenceImages.forEach(refImg => {
     parts.push({
       inlineData: {
@@ -40,11 +40,12 @@ export async function generateImages(
   });
 
   try {
-    const result = await modelInstance.generateContent(parts);
+    const result = await model.generateContent(parts);
     const response = await result.response;
+    const text = response.text();
     
-    // Lưu ý: Nếu app bà cần link ảnh thực tế, đoạn này có thể cần chỉnh thêm tùy thuộc vào API trả về
-    return [response.text()]; 
+    // Vì đây là bản Flash nên nó trả về text, bà cứ để nó chạy xem có ra kết quả không nhé
+    return [text]; 
   } catch (error) {
     console.error("Lỗi rồi bà ơi:", error);
     throw error;

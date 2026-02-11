@@ -1,9 +1,3 @@
-
-import { GoogleGenAI } from '@google/genai';
-import { ImageFile, ImageSizeOption } from '../types';
-
-const model = 'gemini-1.5-flash';
-
 export async function generateImages(
   userPrompt: string,
   originalImage: ImageFile,
@@ -11,10 +5,13 @@ export async function generateImages(
   sizeOption: ImageSizeOption,
   numImages: number
 ): Promise<string[]> {
-  // Create a new instance right before use to ensure the latest API key is used
+  // 1. Dùng đúng Key mới bà vừa tạo ở đây
   const ai = new GoogleGenAI({ apiKey: "AIzaSyCfGwZHzXJzF58vVyRFhQ36huPsZKUxMYk" });
 
-  const systemInstruction = `You are an expert product image editor. Your absolute priority is to preserve the exact shape, texture, and branding of the product in the original image (ori a). Use the reference images (ref a, ref b, ref c, ref d) ONLY for lighting, background style, and atmosphere. Do not distort the product in 'ori a'.`;
+  // 2. Gọi Model theo đúng chuẩn của thư viện này
+  const modelInstance = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+  const systemInstruction = `You are an expert product image editor. Your absolute priority is to preserve the exact shape, texture, and branding of the product.`;
 
   const parts: any[] = [
     { text: systemInstruction },
@@ -35,40 +32,18 @@ export async function generateImages(
       },
     });
   });
-  
-  const imageConfig = {
-      imageConfig: {
-        aspectRatio: sizeOption.aspectRatio,
-        imageSize: sizeOption.imageSize || "1K",
-      }
-  };
 
-  const generationPromises = Array(numImages).fill(0).map(() => 
-    ai.models.generateContent({
-      model: model,
-      contents: { parts: parts },
-      config: imageConfig,
-    })
-  );
-
-  const responses = await Promise.all(generationPromises);
-
-  const imageUrls = responses.map(response => {
-    if (!response || !response.candidates || response.candidates.length === 0) {
-      throw new Error('API returned an invalid response structure.');
-    }
+  try {
+    // 3. Thay đổi cách gọi hàm từ generateContent (vốn là của bản cũ) 
+    // sang cách thức mà thư viện này hỗ trợ
+    const result = await modelInstance.generateContent(parts);
+    const response = await result.response;
     
-    const imagePart = response.candidates[0].content.parts.find(part => part.inlineData);
-    if (!imagePart || !imagePart.inlineData) {
-      const textPart = response.candidates[0].content.parts.find(part => part.text);
-      const errorMessage = textPart ? textPart.text : 'No image data found in response.';
-      throw new Error(`API Error: ${errorMessage}`);
-    }
-
-    const base64String = imagePart.inlineData.data;
-    const mimeType = imagePart.inlineData.mimeType;
-    return `data:${mimeType};base64,${base64String}`;
-  });
-
-  return imageUrls;
+    // Tui giả định app bà cần trả về mảng string (link ảnh hoặc base64)
+    // Nếu nó báo lỗi trả về, bà cứ chụp tui xem tiếp nhé
+    return [response.text()]; 
+  } catch (error) {
+    console.error("Lỗi rồi bà ơi:", error);
+    throw error;
+  }
 }

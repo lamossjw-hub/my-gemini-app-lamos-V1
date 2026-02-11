@@ -1,27 +1,15 @@
-import * as GoogleAI from '@google/generative-ai';
-import { ImageFile, ImageSizeOption } from '../types';
-
-export async function generateImages(
-  userPrompt: string,
-  originalImage: ImageFile,
-  referenceImages: ImageFile[],
-  sizeOption: ImageSizeOption,
-  numImages: number
-): Promise<string[]> {
-  
-  // Dùng đúng Key mới nhất bà vừa tạo ở đây
+// 1. Khởi tạo đầu não (Dùng Key mới của bà nhé)
   const genAI = new (GoogleAI as any).GoogleGenerativeAI("AIzaSyCfGwZHzXJzF58vVyRFhQ36huPsZKUxMYk");
 
-  // Đặt tên là 'model' cho đồng bộ với các lệnh gọi ở dưới
-  const model = genAI.getGenerativeModel({ 
-    model: "gemini-1.5-flash" 
-  });
+  // 2. Đặt tên biến là 'model' (để không bị lỗi "not defined")
+  // Dùng tên model này là chắc ăn nhất cho bản v1beta
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
   const systemInstruction = `You are an expert product image editor. Preserve the exact shape and texture.`;
 
   const parts = [
     { text: systemInstruction },
-    { text: `User prompt: ${userPrompt}` },
+    { text: `User prompt: ${userPrompt || 'Create an appealing product image.'}` },
     {
       inlineData: {
         mimeType: originalImage.file.type,
@@ -40,7 +28,7 @@ export async function generateImages(
   });
 
   try {
-    // Gọi đúng biến 'model' đã khai báo ở trên
+    // 3. Gọi đúng biến 'model' đã khai báo ở trên
     const result = await model.generateContent(parts);
     const response = await result.response;
     return [response.text()]; 
@@ -48,4 +36,3 @@ export async function generateImages(
     console.error("Lỗi rồi bà ơi:", error);
     throw error;
   }
-}

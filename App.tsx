@@ -7,8 +7,8 @@ import { ImageFile, ImageSizeOption } from './types';
 import { IMAGE_SIZE_OPTIONS } from './constants';
 
 const App: React.FC = () => {
-  const [hasApiKey, setHasApiKey] = useState<boolean>(false);
-  const [checkingKey, setCheckingKey] = useState<boolean>(true);
+  const [hasApiKey, setHasApiKey] = useState(true);
+  const [checkingKey, setCheckingKey] = useState<boolean>(false);
 
   const [originalImage, setOriginalImage] = useState<ImageFile | null>(null);
   const [refA, setRefA] = useState<ImageFile | null>(null);
@@ -67,7 +67,6 @@ const App: React.FC = () => {
     } catch (err: any) {
       console.error(err);
       if (err.message?.includes("Requested entity was not found")) {
-        setHasApiKey(false);
         setError("API Key error. Please re-select your API key.");
       } else {
         setError(err instanceof Error ? err.message : 'An unknown error occurred.');

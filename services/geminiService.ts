@@ -10,13 +10,14 @@ export async function generateImages(
   
   const apiKey = "AIzaSyCfGwZHzXJzF58vVyRFhQ36huPsZKUxMYk";
   
-  // Ép nó dùng bản v1 (bỏ chữ beta đi) để hết lỗi 404
-  const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  // 1. Quay lại v1beta nhưng dùng model có số hiệu -001
+  // Đây là model "chân ái" không bị 404 trên bản Beta
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent?key=${apiKey}`;
 
   const payload = {
     contents: [{
       parts: [
-        { text: `Task: ${userPrompt || 'Edit this product image'}` },
+        { text: `Task: ${userPrompt || 'Analyze this product image'}` },
         {
           inlineData: {
             mimeType: originalImage.file.type,
@@ -37,14 +38,14 @@ export async function generateImages(
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error?.message || "Lỗi rồi bà ơi");
+      // Nếu lỗi, nó sẽ nhả ra chính xác tại sao ở đây
+      throw new Error(data.error?.message || "Server Google lại dở quẻ rồi bà ơi");
     }
 
-    // Lấy đoạn text trả về
     return [data.candidates[0].content.parts[0].text];
 
   } catch (error) {
-    console.error("Cú chốt bị lỗi:", error);
+    console.error("Lỗi rồi:", error);
     throw error;
   }
 }

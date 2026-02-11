@@ -1,8 +1,18 @@
-// 1. Khởi tạo đầu não (Dùng Key mới của bà nhé)
+import * as GoogleAI from '@google/generative-ai';
+import { ImageFile, ImageSizeOption } from '../types';
+
+export async function generateImages(
+  userPrompt: string,
+  originalImage: ImageFile,
+  referenceImages: ImageFile[],
+  sizeOption: ImageSizeOption,
+  numImages: number
+): Promise<string[]> {
+  
+  // 1. Khởi tạo đầu não
   const genAI = new (GoogleAI as any).GoogleGenerativeAI("AIzaSyCfGwZHzXJzF58vVyRFhQ36huPsZKUxMYk");
 
-  // 2. Đặt tên biến là 'model' (để không bị lỗi "not defined")
-  // Dùng tên model này là chắc ăn nhất cho bản v1beta
+  // 2. Dùng model này để tránh 404 trên bản v1beta của bà
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
   const systemInstruction = `You are an expert product image editor. Preserve the exact shape and texture.`;
@@ -28,11 +38,12 @@
   });
 
   try {
-    // 3. Gọi đúng biến 'model' đã khai báo ở trên
     const result = await model.generateContent(parts);
     const response = await result.response;
+    // Đảm bảo lệnh return này nằm TRONG hàm và TRONG try-catch
     return [response.text()]; 
   } catch (error) {
     console.error("Lỗi rồi bà ơi:", error);
     throw error;
   }
+}

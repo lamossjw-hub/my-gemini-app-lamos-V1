@@ -1,4 +1,3 @@
-import * as GoogleAI from '@google/generative-ai';
 import { ImageFile, ImageSizeOption } from '../types';
 
 export async function generateImages(
@@ -9,46 +8,44 @@ export async function generateImages(
   numImages: number
 ): Promise<string[]> {
   
+  // 1. Dùng đúng Key mới nhất của bà ở đây
+  const apiKey = "AIzaSyCfGwZHzXJzF58vVyRFhQ36huPsZKUxMYk";
+  
+  // 2. Ép dùng API v1 (Bản ổn định) thay vì v1beta để hết lỗi 404
+  const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+  const payload = {
+    contents: [{
+      parts: [
+        { text: `You are an expert image editor. Instructions: ${userPrompt}` },
+        {
+          inlineData: {
+            mimeType: originalImage.file.type,
+            data: originalImage.base64
+          }
+        }
+      ]
+    }]
+  };
+
   try {
-    // 1. Dùng Key mới nhất của bà
-    const genAI = new (GoogleAI as any).GoogleGenerativeAI("AIzaSyCfGwZHzXJzF58vVyRFhQ36huPsZKUxMYk");
-
-    // 2. Tuyệt chiêu: Dùng model 'gemini-1.5-flash-latest' 
-    // Đây là tên duy nhất hiện tại Google ưu tiên cho bản Beta để tránh 404
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-
-    const systemInstruction = `You are an expert product image editor. Focus on: ${userPrompt}`;
-
-    const parts = [
-      { text: systemInstruction },
-      {
-        inlineData: {
-          mimeType: originalImage.file.type,
-          data: originalImage.base64,
-        },
-      },
-    ];
-
-    referenceImages.forEach(refImg => {
-      parts.push({
-        inlineData: {
-          mimeType: refImg.file.type,
-          data: refImg.base64,
-        },
-      });
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
 
-    // 3. Thực hiện gọi API
-    const result = await model.generateContent(parts);
-    const response = await result.response;
-    const text = response.text();
-    
-    // Trả về kết quả dưới dạng mảng string để khớp với giao diện của bà
-    return [text]; 
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error?.message || "Lỗi server rồi bà ơi");
+    }
+
+    const data = await response.json();
+    // Trả về kết quả text từ AI
+    return [data.candidates[0].content.parts[0].text];
 
   } catch (error) {
-    console.error("Lỗi cuối cùng nè bà:", error);
-    // Nếu vẫn 404, tui sẽ chỉ bà cách đổi API Version trong bước tiếp theo
+    console.error("Cú chốt cuối cùng bị lỗi:", error);
     throw error;
   }
 }

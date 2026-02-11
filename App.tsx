@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { ImageUploader } from './components/ImageUploader';
 import { Spinner } from './components/Spinner';
 import { generateImages } from './services/geminiService';
@@ -7,6 +7,9 @@ import { ImageFile, ImageSizeOption } from './types';
 import { IMAGE_SIZE_OPTIONS } from './constants';
 
 const App: React.FC = () => {
+  const [hasApiKey, setHasApiKey] = useState<boolean>(false);
+  const [checkingKey, setCheckingKey] = useState<boolean>(true);
+
   const [originalImage, setOriginalImage] = useState<ImageFile | null>(null);
   const [refA, setRefA] = useState<ImageFile | null>(null);
   const [refB, setRefB] = useState<ImageFile | null>(null);
@@ -19,6 +22,22 @@ const App: React.FC = () => {
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkKey = async () => {
+      // @ts-ignore
+      const selected = await window.aistudio.hasSelectedApiKey();
+      setHasApiKey(selected);
+      setCheckingKey(false);
+    };
+    checkKey();
+  }, []);
+
+  const handleSelectKey = async () => {
+    // @ts-ignore
+    await window.aistudio.openSelectKey();
+    setHasApiKey(true); // Assume success per instructions
+  };
 
   const handleGenerate = useCallback(async () => {
     if (!originalImage) {
@@ -45,14 +64,56 @@ const App: React.FC = () => {
         numImages
       );
       setGeneratedImages(results);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+      if (err.message?.includes("Requested entity was not found")) {
+        setHasApiKey(false);
+        setError("API Key error. Please re-select your API key.");
+      } else {
+        setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+      }
     } finally {
       setIsLoading(false);
     }
   }, [originalImage, refA, refB, refC, refD, prompt, imageSize, numImages]);
-  
+
+  if (checkingKey) {
+    return (
+      <div className="min-h-screen bg-[#131314] flex items-center justify-center">
+        <Spinner large />
+      </div>
+    );
+  }
+
+  if (!hasApiKey) {
+    return (
+      <div className="min-h-screen bg-[#131314] flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-[#1e1f20] p-8 rounded-2xl border border-gray-700 text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">API Key Required</h2>
+          <p className="text-gray-400 mb-6">
+            To use high-quality image generation with Gemini 3 Pro, you must select an API key from a paid GCP project.
+          </p>
+          <div className="mb-8 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg text-sm text-blue-200">
+            <p>Ensure billing is enabled for your project.</p>
+            <a 
+              href="https://ai.google.dev/gemini-api/docs/billing" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="underline hover:text-blue-100 block mt-2"
+            >
+              Learn about Gemini API billing
+            </a>
+          </div>
+          <button
+            onClick={handleSelectKey}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition"
+          >
+            Select API Key
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen text-white font-sans p-4 sm:p-8">
@@ -134,6 +195,12 @@ const App: React.FC = () => {
           ) : error ? (
             <div className="text-center text-red-400">
               <p><strong>Error:</strong> {error}</p>
+              <button 
+                onClick={handleSelectKey}
+                className="mt-4 text-sm text-blue-400 underline"
+              >
+                Change API Key
+              </button>
             </div>
           ) : generatedImages.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">

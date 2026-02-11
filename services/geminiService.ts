@@ -2,13 +2,6 @@
 import { GoogleGenAI } from '@google/genai';
 import { ImageFile, ImageSizeOption } from '../types';
 
-if (!process.env.API_KEY) {
-  // In a real app, you would want to handle this more gracefully.
-  // For this context, we assume the environment variable is set.
-  console.warn("API_KEY environment variable not set. Using a placeholder.");
-}
-
-const ai = new GoogleGenAI("AIzaSyCxIeZSiojvZtamt7g9KGUKSGSkmLZ5T_Y");
 const model = 'gemini-3-pro-image-preview'; 
 
 export async function generateImages(
@@ -18,6 +11,9 @@ export async function generateImages(
   sizeOption: ImageSizeOption,
   numImages: number
 ): Promise<string[]> {
+  // Create a new instance right before use to ensure the latest API key is used
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
   const systemInstruction = `You are an expert product image editor. Your absolute priority is to preserve the exact shape, texture, and branding of the product in the original image (ori a). Use the reference images (ref a, ref b, ref c, ref d) ONLY for lighting, background style, and atmosphere. Do not distort the product in 'ori a'.`;
 
   const parts: any[] = [

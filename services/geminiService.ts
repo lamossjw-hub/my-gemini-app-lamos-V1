@@ -2,7 +2,7 @@
 import { GoogleGenAI } from '@google/genai';
 import { ImageFile, ImageSizeOption } from '../types';
 
-const model = 'gemini-pro';
+const model = 'gemini-1.5-flash-8b';
 
 export async function generateImages(
   userPrompt: string,

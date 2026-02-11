@@ -10,13 +10,12 @@ export async function generateImages(
   numImages: number
 ): Promise<string[]> {
   
-  // Cách viết cho bản cũ: dùng GoogleAI.GoogleGenerativeAI
-  const genAI = new (GoogleAI as any).GoogleGenerativeAI("AIzaSyCfGwZHzXJzF58vVyRFhQ36huPsZKUxMYk");
+// Dùng cách này để ép nó nhận diện đúng bản đồ của Google hiện tại
+const genAI = new (GoogleAI as any).GoogleGenerativeAI("AIzaSyCfGwZHzXJzF58vVyRFhQ36huPsZKUxMYk");
 
-  // Dùng model cơ bản nhất để không bị 404
-  const model = genAI.getGenerativeModel({ 
-  model: "gemini-pro-vision",
-  apiVersion: "v1" // Ép nó về bản v1 ổn định, bỏ qua cái v1beta đang lỗi
+// Ép model phải dùng bản ổn định nhất
+const modelInstance = genAI.getGenerativeModel({ 
+  model: "gemini-1.5-flash",
 });
 
   const systemInstruction = `You are an expert product image editor. Preserve the exact shape and texture.`;

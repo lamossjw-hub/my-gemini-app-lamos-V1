@@ -1,3 +1,9 @@
+import { GoogleGenAI } from '@google/generative-ai';
+import { ImageFile, ImageSizeOption } from '../types';
+
+// 1. Tên model chuẩn nhất cho bản v1beta của bà
+const modelName = 'gemini-1.5-flash';
+
 export async function generateImages(
   userPrompt: string,
   originalImage: ImageFile,
@@ -5,11 +11,11 @@ export async function generateImages(
   sizeOption: ImageSizeOption,
   numImages: number
 ): Promise<string[]> {
-  // 1. Dùng đúng Key mới bà vừa tạo ở đây
-  const ai = new GoogleGenAI({ apiKey: "AIzaSyCfGwZHzXJzF58vVyRFhQ36huPsZKUxMYk" });
+  
+  // 2. Dùng đúng Key mới bà vừa dán ở đây
+  const ai = new GoogleGenAI("AIzaSyCfGwZHzXJzF58vVyRFhQ36huPsZKUxMYk");
 
-  // 2. Gọi Model theo đúng chuẩn của thư viện này
-  const modelInstance = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const modelInstance = ai.getGenerativeModel({ model: modelName });
 
   const systemInstruction = `You are an expert product image editor. Your absolute priority is to preserve the exact shape, texture, and branding of the product.`;
 
@@ -34,13 +40,10 @@ export async function generateImages(
   });
 
   try {
-    // 3. Thay đổi cách gọi hàm từ generateContent (vốn là của bản cũ) 
-    // sang cách thức mà thư viện này hỗ trợ
     const result = await modelInstance.generateContent(parts);
     const response = await result.response;
     
-    // Tui giả định app bà cần trả về mảng string (link ảnh hoặc base64)
-    // Nếu nó báo lỗi trả về, bà cứ chụp tui xem tiếp nhé
+    // Lưu ý: Nếu app bà cần link ảnh thực tế, đoạn này có thể cần chỉnh thêm tùy thuộc vào API trả về
     return [response.text()]; 
   } catch (error) {
     console.error("Lỗi rồi bà ơi:", error);
